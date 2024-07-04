@@ -1,4 +1,4 @@
-srccmd() {
+srcmd() {
     compgen -c | sort | fzf --preview 'man {}' --preview-window 'right:60%:wrap' | xargs man
 } 
 
