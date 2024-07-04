@@ -1,4 +1,4 @@
-commands
+custom commands
 
 srcmd:  Interactive command search.
 
