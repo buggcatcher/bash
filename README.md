@@ -1,11 +1,11 @@
-custom commands:
+commands
 
-srcmd: Interactive command search.
+srcmd:  Interactive command search.
 
-srcman: Interactive manual page searcher.
+srcman:  Interactive manual page searcher.
 
-path: Copies current directory path to clipboard.
+path:    Copies current directory path to clipboard.
 
 missing: Compares two directories for missing files.
 
-ship: Displays ASCII ship.
+ship:    Displays ASCII ship.
