@@ -17,9 +17,8 @@ to add:
 hi highlight <word> <file>
 alias hi='grep --color=always -e "^" -e'
 
-fortune
-pokeget
-To split output into columns in a terminal, there are a few useful methods and tools depending on your operating system.
+
+To split fortune and pokeget output into columns in a terminal, there are a few useful methods and tools depending on your operating system.
 
     column:             
     This command is a powerful way to format text data into columns.         
