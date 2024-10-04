@@ -11,7 +11,8 @@ missing: Compares two directories for missing files.
 ship:    Displays ASCII ship.
 
 
---- to add:
+----
+to add:
 
 hi highlight <word> <file>
 alias hi='grep --color=always -e "^" -e'
