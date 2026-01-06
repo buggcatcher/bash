@@ -1,15 +1,20 @@
-srcmd() {
-    compgen -c | sort | fzf --preview 'man {}' --preview-window 'right:60%:wrap' | xargs man
-} 
-
- srcman() {
-    local man_page
-    man_page=$(man -k . | sort | fzf --prompt='Man Pages> ' --preview='echo {} | awk "{print \$1}" | xargs man' --preview-window=down:50%:wrap)
-    man "$(echo "$man_page" | awk '{print $1}')"
-}
+#########################
+#			            #
+#	     ALIASES	    #
+#			            #
+#########################
 
 alias missing="/nfs/homes/mailinci/repo/bash/missing.sh"
-alias path='pwd | tee >(xclip -selection clipboard) && echo "path copied!"'
+alias mini="bash ~/mini-moulinette/mini-moul.sh"
+alias gg="gcc -Werror -Wall -Wextra"
+alias francinette=/nfs/homes/mailinci/francinette/tester.sh
+alias paco=/nfs/homes/mailinci/francinette/tester.sh
+alias grind=valgrind -s --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose
+alias grademe=bash -c "$(curl https://grademe.fr)"
+alias la="pwd && ls -lha"
+alias clip="xclip -selection clipboard"
+alias studio="cd /home/nautilus/Coding/Android/android-studio-2023.3.1.18-linux/android-studio/bin && ./studio.sh &"
+alias map="telnet mapscii.me "
 alias ship='echo "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠤⠴⠶⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"; \
 echo "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣶⣾⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"; \
 echo "⠀⠀⠀⠀⠀⠀⠀⠂⠉⡇⠀⠀⠀⢰⣿⣿⣿⣿⣧⠀⠀⢀⣄⣀⠀⠀⠀⠀⠀⠀"; \
@@ -24,3 +29,107 @@ echo "⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣿⣷⣤⣀⣸⣧⣠⣤⣴⣶⣾⣿�
 echo "⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠇⠀⠀⠀"; \
 echo "⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠛⠉⠀⠀⠀⠀"; \
 echo "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"'
+
+
+#########################
+#			            #
+#	     SCRIPTS	    #
+#			            #
+#########################
+
+scout()
+{
+    tmpfile="/tmp/ranger-cd-$$"
+    ranger --choosedir="$tmpfile" "${@:-$PWD}"
+    test -f "$tmpfile" && test "$(cat "$tmpfile")" != "$(pwd)" && cd "$(cat "$tmpfile")"
+    rm -f "$tmpfile"
+}
+
+srcmd() {
+    compgen -c | sort | fzf --preview 'man {}' --preview-window 'right:60%:wrap' | xargs man
+} 
+
+srcfile() {
+  local selected
+  selected=$(find . -type f 2>/dev/null \
+    | fzf --preview 'bat --style=numbers --color=always --line-range=:100 {} 2>/dev/null || head -n 100 {}' \
+          --preview-window='right:60%:wrap' \
+          --height=90% --layout=reverse --border)
+
+  if [[ -n "$selected" ]]; then
+    local dir
+    dir=$(dirname "$selected")
+    cd "$dir" || return
+    echo "Moved to: $dir"
+  fi
+}
+
+srcman()
+{
+    local man_page
+    man_page=$(man -k . | sort | fzf --prompt='Man Pages> ' --preview='echo {} | awk "{print \$1}" | xargs man' --preview-window=down:50%:wrap)
+    man "$(echo "$man_page" | awk '{print $1}')"
+}
+
+convert_segments() {
+  local input="$1"
+  local cmd="$2"
+  local full_format="$3"
+  local result=""
+  local seg
+  IFS='.'
+  
+  for seg in ${=input}; do
+    local bc_cmd=$(echo "$cmd" | sed "s/SEG/$seg/")
+    local conv=$(echo "$bc_cmd" | bc 2>/dev/null)
+    
+    if [ $? -ne 0 ] || [ -z "$conv" ]; then
+      conv="ERROR"
+    elif [ "$full_format" = "true" ] && [ "$cmd" = "obase=2; SEG" ]; then
+      conv=$(printf "%08d" "$conv")
+    fi
+    
+    result="${result}${result:+.}$conv"
+  done
+  
+  unset IFS
+  echo "$result"
+}
+
+itob() {
+  if [ "$1" = "--full" ]; then
+    convert_segments "$2" "obase=2; SEG" "true"
+  else
+    convert_segments "$1" "obase=2; SEG" "false"
+  fi
+}
+
+
+
+btoi() { convert_segments "$1" "ibase=2; SEG" "false"; }
+itoh() { convert_segments "$1" "obase=16; SEG" "false"; }
+htoi() { convert_segments "$(echo $1 | tr '[:lower:]' '[:upper:]')" "ibase=16; SEG" "false"; }
+btoh() { convert_segments "$1" "ibase=2; obase=16; SEG" "false"; }
+htob() { convert_segments "$(echo $1 | tr '[:lower:]' '[:upper:]')" "ibase=16; obase=2; SEG" "false"; }
+
+
+
+command_not_found_handler() {
+  if [[ "$*" == *grazie* ]]; then
+    sleep 0.5
+    echo -n '.'
+    sleep 0.1
+    echo -n '.' 
+    sleep 0.1
+    echo -n '.'
+    sleep 0.5
+    echo ' prego!'
+    return 0
+  else
+    echo "zsh: command not found: $1"
+    return 127
+  fi
+}
+
+alias clipc='cat -- *.c 2>/dev/null | xclip -selection clipboard'
+
