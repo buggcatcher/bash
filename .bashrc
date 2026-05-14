@@ -37,6 +37,46 @@ echo "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠀⠀�
 #			            #
 #########################
 
+gittree() {
+  git fetch origin 2>/dev/null
+
+  local tmpfile
+  tmpfile=$(mktemp)
+  git --no-pager log --all -n 24 \
+    --pretty=format:"%h" 2>/dev/null | while read -r hash; do
+    stat=$(git diff --shortstat "${hash}^" "${hash}" 2>/dev/null)
+    ins=$(echo "$stat" | grep -oP '\d+(?= insertion)' || echo 0)
+    del=$(echo "$stat" | grep -oP '\d+(?= deletion)' || echo 0)
+    [[ -z "$ins" ]] && ins=0
+    [[ -z "$del" ]] && del=0
+    echo "${hash} +${ins} -${del}" >> "$tmpfile"
+  done
+
+  git --no-pager log \
+    --graph --all --decorate --abbrev-commit -n 24 \
+    --color=always \
+    --pretty=format:'%C(yellow)%h%C(reset)%C(auto)%d%C(reset) %s  %C(cyan)%an%C(reset)  %C(green)%cr%C(reset) %C(white dim)(%cd)%C(reset)' \
+    --date=format:'%d/%m %H:%M' 2>/dev/null | \
+  while IFS= read -r line; do
+    hash=$(echo "$line" | grep -oP '[0-9a-f]{7}' | head -1)
+    if [[ -n "$hash" ]]; then
+      statline=$(grep "^$hash " "$tmpfile" 2>/dev/null)
+      ins=$(echo "$statline" | grep -oP '\+\d+')
+      del=$(echo "$statline" | grep -oP '\-\d+')
+      if [[ -n "$ins" ]]; then
+        printf "%s  \033[38;5;76m%s\033[0m \033[38;5;196m%s\033[0m\n" "$line" "$ins" "$del"
+      else
+        echo "$line"
+      fi
+    else
+      echo "$line"
+    fi
+  done
+
+  rm -f "$tmpfile"
+  echo
+}
+
 scout()
 {
     tmpfile="/tmp/ranger-cd-$$"
