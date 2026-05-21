@@ -13,6 +13,7 @@ alias grind=valgrind -s --leak-check=full --show-leak-kinds=all --track-origins=
 alias grademe=bash -c "$(curl https://grademe.fr)"
 alias la="pwd && ls -lha"
 alias clip="xclip -selection clipboard"
+alias clipc='cat -- *.c 2>/dev/null | xclip -selection clipboard'
 alias studio="cd /home/nautilus/Coding/Android/android-studio-2023.3.1.18-linux/android-studio/bin && ./studio.sh &"
 alias map="telnet mapscii.me "
 alias ship='echo "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠤⠴⠶⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"; \
@@ -171,5 +172,25 @@ command_not_found_handler() {
   fi
 }
 
-alias clipc='cat -- *.c 2>/dev/null | xclip -selection clipboard'
+###if host has gnome enable over amplification with: ~$ gsettings set org.gnome.desktop.sound allow-volume-above-100-percent true
+volume() {
+    if [[ -z "$1" ]]; then
+        echo "uso: volume <percentuale>"
+        return 1
+    fi
 
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+        echo "invalido"
+        return 1
+    fi
+
+    if (( $1 < 0 || $1 > 777 )); then
+        echo "fuori range"
+        return 1
+    fi
+
+    local livello
+    livello=$(echo "scale=2; $1 / 100" | bc)
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ "$livello"
+    echo "impostato al $1%"
+}
